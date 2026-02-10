@@ -79,6 +79,44 @@ const upsertHistory = (series, channelId, date, subs) => {
   series[channelId] = list;
 };
 
+const parseDate = (value) => new Date(`${value}T00:00:00Z`);
+
+const addMonths = (date, months) => {
+  const next = new Date(date);
+  next.setUTCMonth(next.getUTCMonth() + months);
+  return next;
+};
+
+const compactSeries = (entries, cutoffDate, threshold) => {
+  if (!entries || entries.length === 0) {
+    return [];
+  }
+
+  const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+  const older = sorted.filter((entry) => parseDate(entry.date) < cutoffDate);
+  const recent = sorted.filter((entry) => parseDate(entry.date) >= cutoffDate);
+
+  if (older.length <= 2) {
+    return [...older, ...recent];
+  }
+
+  const compacted = [older[0]];
+  for (let i = 1; i < older.length - 1; i += 1) {
+    const current = older[i];
+    const lastKept = compacted[compacted.length - 1];
+    if (Math.abs(current.subs - lastKept.subs) >= threshold) {
+      compacted.push(current);
+    }
+  }
+
+  const lastOlder = older[older.length - 1];
+  if (compacted[compacted.length - 1].date !== lastOlder.date) {
+    compacted.push(lastOlder);
+  }
+
+  return [...compacted, ...recent];
+};
+
 const updateSubscribers = async () => {
   if (!API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not set.");
@@ -89,6 +127,8 @@ const updateSubscribers = async () => {
   const channels = Array.isArray(data.channels) ? data.channels : [];
   const history = await loadHistory();
   const today = new Date().toISOString().slice(0, 10);
+  const cutoffDate = addMonths(parseDate(today), -6);
+  const changeThreshold = 1000;
 
   const ids = channels
     .map((channel) => parseChannelId(channel.URL))
@@ -123,6 +163,13 @@ const updateSubscribers = async () => {
 
   const output = JSON.stringify({ channels }, null, "\t");
   await fs.writeFile(DATA_PATH, `${output}\n`, "utf8");
+  Object.keys(history.series).forEach((channelId) => {
+    history.series[channelId] = compactSeries(
+      history.series[channelId],
+      cutoffDate,
+      changeThreshold
+    );
+  });
   history.updatedAt = today;
   const historyOutput = JSON.stringify(history, null, "\t");
   await fs.writeFile(HISTORY_PATH, `${historyOutput}\n`, "utf8");

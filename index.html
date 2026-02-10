@@ -92,18 +92,25 @@
         </div>
         <p id="detail-subs" class="modal-subs"></p>
         <div id="detail-tags" class="modal-tags"></div>
-        <div class="modal-chart">
-          <div class="modal-chart-head">
-            <span>登録者数の推移</span>
+        <div class="modal-chart-head">
+          <span>登録者数の推移</span>
+          <div class="modal-chart-controls">
+            <div id="history-source-toggle" class="toggle" role="group" aria-label="履歴データ">
+              <button type="button" data-source="history.json">history.json</button>
+              <button type="button" data-source="history.compacted.json">history.compacted.json</button>
+            </div>
             <span id="detail-history-range" class="modal-chart-range"></span>
           </div>
+        </div>
+        <div class="modal-chart">
           <svg
             id="detail-chart"
             class="modal-chart-svg"
             viewBox="0 0 320 120"
-            preserveAspectRatio="none"
+            preserveAspectRatio="xMidYMid meet"
             aria-hidden="true"
           ></svg>
+          <div id="detail-history-tooltip" class="modal-chart-tooltip" hidden></div>
           <p id="detail-history-empty" class="modal-history-empty" hidden>
             履歴がまだありません。
           </p>

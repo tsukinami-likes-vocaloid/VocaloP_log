@@ -4,9 +4,9 @@ const state = {
   tag: "all",
   search: "",
   sort: "subs-desc",
-  history: {
-    series: {},
-  },
+  historySource: "history.json",
+  historySources: {},
+  activeItem: null,
 };
 
 const fallbackImage =
@@ -31,6 +31,8 @@ const elements = {
   historyRange: document.getElementById("detail-history-range"),
   historyChart: document.getElementById("detail-chart"),
   historyEmpty: document.getElementById("detail-history-empty"),
+  historyTooltip: document.getElementById("detail-history-tooltip"),
+  historyToggle: document.getElementById("history-source-toggle"),
 };
 
 const formatSubs = new Intl.NumberFormat("ja-JP");
@@ -190,6 +192,7 @@ const render = () => {
 };
 
 const openModal = (item) => {
+  state.activeItem = item;
   elements.modalIcon.src = item["アイコンの画像URL"] || fallbackImage;
   elements.modalIcon.alt = `${item["データ名"]} のアイコン`;
   elements.modalIcon.addEventListener("error", () => {
@@ -221,8 +224,12 @@ const openModal = (item) => {
 
 const renderHistoryChart = (item) => {
   const channelId = getChannelId(item["URL"]);
-  const series = channelId && state.history.series
-    ? state.history.series[channelId]
+  const historyPayload =
+    state.historySources[state.historySource] ||
+    state.historySources["history.json"] ||
+    { series: {} };
+  const series = channelId && historyPayload.series
+    ? historyPayload.series[channelId]
     : null;
 
   if (!series || series.length < 2) {
@@ -237,15 +244,41 @@ const renderHistoryChart = (item) => {
   const values = sorted.map((entry) => entry.subs);
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const range = max - min || 1;
+  const rawRange = max - min || 1;
+  const niceStep = (rangeValue, ticks) => {
+    const rough = rangeValue / ticks;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
+    const residual = rough / magnitude;
+    let nice = 1;
+    if (residual >= 5) {
+      nice = 5;
+    } else if (residual >= 2) {
+      nice = 2;
+    }
+    return nice * magnitude;
+  };
+
+  const yTicks = 3;
+  const stepValue = niceStep(rawRange, yTicks);
+  const niceMin = Math.floor(min / stepValue) * stepValue;
+  const niceMax = Math.ceil(max / stepValue) * stepValue;
+  const range = niceMax - niceMin || 1;
 
   const width = 320;
   const height = 120;
-  const padding = 12;
-  const step = (width - padding * 2) / (sorted.length - 1);
+  const padding = 16;
+  const paddingLeft = 38;
+  const minTime = Date.parse(sorted[0].date);
+  const maxTime = Date.parse(sorted[sorted.length - 1].date);
+  const timeSpan = Math.max(maxTime - minTime, 1);
+  const xForIndex = (index) => {
+    const time = Date.parse(sorted[index].date);
+    const ratio = Number.isFinite(time) ? (time - minTime) / timeSpan : 0;
+    return paddingLeft + ratio * (width - paddingLeft - padding);
+  };
 
   const points = sorted.map((entry, index) => {
-    const x = padding + step * index;
+    const x = xForIndex(index);
     const y =
       height -
       padding -
@@ -255,16 +288,91 @@ const renderHistoryChart = (item) => {
 
   const dots = sorted
     .map((entry, index) => {
-      const x = padding + step * index;
+      const x = xForIndex(index);
       const y =
         height -
         padding -
         ((entry.subs - min) / range) * (height - padding * 2);
-      return `<circle cx="${x}" cy="${y}" r="2.5" fill="${"#1f9c9a"}" />`;
+      return `<circle
+        class="chart-dot"
+        cx="${x}"
+        cy="${y}"
+        r="3"
+        fill="#1f9c9a"
+        data-date="${entry.date}"
+        data-subs="${entry.subs}"
+      />`;
+    })
+    .join("");
+
+  const yStep = (height - padding * 2) / yTicks;
+  const yLabels = Array.from({ length: yTicks + 1 }, (_, index) => {
+    const y = padding + yStep * index;
+    const value = Math.round(niceMax - (range * index) / yTicks);
+    return {
+      y,
+      value,
+    };
+  });
+
+  const xLabelIndices = [0, Math.floor((sorted.length - 1) / 2), sorted.length - 1]
+    .filter((value, index, array) => array.indexOf(value) === index)
+    .sort((a, b) => a - b);
+
+  let lastYear = null;
+    const xLabels = xLabelIndices.map((index) => {
+      const xRaw = xForIndex(index);
+      const anchor = index === 0 ? "start" : index === sorted.length - 1 ? "end" : "middle";
+      const x =
+        index === 0
+          ? paddingLeft + 2
+          : index === sorted.length - 1
+            ? width - padding - 2
+            : xRaw;
+      const date = sorted[index].date;
+      const [year, month, day] = date.split("-");
+      const monthValue = String(Number(month));
+      const dayValue = String(Number(day));
+      const showYear = year !== lastYear;
+      if (showYear) {
+        lastYear = year;
+      }
+      const label = showYear
+        ? `${year}/${monthValue}/${dayValue}`
+        : `${monthValue}/${dayValue}`;
+      return {
+        x,
+        label,
+        anchor,
+      };
+    });
+
+  const gridLines = yLabels
+    .map((label) => {
+      return `<line class="chart-grid-line" x1="${paddingLeft}" y1="${label.y}" x2="${
+        width - padding
+      }" y2="${label.y}" />`;
+    })
+    .join("");
+
+  const yAxisLabels = yLabels
+    .map((label) => {
+      return `<text class="chart-axis-label" x="${paddingLeft - 6}" y="${
+        label.y - 2
+      }" text-anchor="end">${formatSubs.format(label.value)}</text>`;
+    })
+    .join("");
+
+  const xAxisLabels = xLabels
+    .map((label) => {
+      return `<text class="chart-axis-label" x="${label.x}" y="${
+        height - 2
+      }" text-anchor="${label.anchor}">${label.label}</text>`;
     })
     .join("");
 
   elements.historyChart.innerHTML = `
+    ${gridLines}
     <polyline
       fill="none"
       stroke="#1f9c9a"
@@ -274,6 +382,8 @@ const renderHistoryChart = (item) => {
       points="${points.join(" ")}"
     />
     ${dots}
+    ${yAxisLabels}
+    ${xAxisLabels}
   `;
 
   elements.historyChart.style.display = "block";
@@ -281,11 +391,66 @@ const renderHistoryChart = (item) => {
   elements.historyRange.textContent = `${sorted[0].date} - ${
     sorted[sorted.length - 1].date
   }`;
+  elements.historyTooltip.hidden = true;
+
+  const dotNodes = elements.historyChart.querySelectorAll(".chart-dot");
+  dotNodes.forEach((dot) => {
+    dot.addEventListener("mouseenter", (event) => {
+      const subs = Number(event.target.dataset.subs || 0);
+      const date = event.target.dataset.date || "";
+      elements.historyTooltip.textContent = `${date} / ${formatSubs.format(subs)}`;
+      elements.historyTooltip.hidden = false;
+      positionTooltip(event.target);
+    });
+
+    dot.addEventListener("mousemove", (event) => {
+      positionTooltip(event.target);
+    });
+
+    dot.addEventListener("mouseleave", () => {
+      elements.historyTooltip.hidden = true;
+    });
+  });
+};
+
+const positionTooltip = (dot) => {
+  const svgRect = elements.historyChart.getBoundingClientRect();
+  const chartRect = elements.historyChart.parentElement.getBoundingClientRect();
+  const cx = Number(dot.getAttribute("cx"));
+  const cy = Number(dot.getAttribute("cy"));
+
+  const left = (cx / 320) * svgRect.width + (svgRect.left - chartRect.left);
+  const top = (cy / 120) * svgRect.height + (svgRect.top - chartRect.top);
+
+  elements.historyTooltip.style.left = `${left}px`;
+  elements.historyTooltip.style.top = `${top}px`;
 };
 
 const closeModal = () => {
   elements.modal.hidden = true;
   document.body.style.overflow = "";
+  state.activeItem = null;
+};
+
+const updateHistoryToggleUI = () => {
+  const toggleButtons = elements.historyToggle
+    ? Array.from(elements.historyToggle.querySelectorAll("button"))
+    : [];
+  if (!toggleButtons.length) {
+    return;
+  }
+
+  const sources = Object.keys(state.historySources);
+  const hasRaw = sources.includes("history.json");
+  const hasCompacted = sources.includes("history.compacted.json");
+
+  toggleButtons.forEach((button) => {
+    const source = button.dataset.source;
+    const isAvailable =
+      source === "history.json" ? hasRaw : source === "history.compacted.json" ? hasCompacted : false;
+    button.disabled = !isAvailable;
+    button.classList.toggle("active", state.historySource === source);
+  });
 };
 
 const init = async () => {
@@ -296,13 +461,38 @@ const init = async () => {
     state.filtered = [...state.data];
 
     try {
-      const historyResponse = await fetch("./history.json");
-      if (historyResponse.ok) {
-        state.history = await historyResponse.json();
+      const historyFiles = ["history.json", "history.compacted.json"];
+      const historyResults = await Promise.all(
+        historyFiles.map(async (file) => {
+          try {
+            const historyResponse = await fetch(`./${file}`);
+            if (!historyResponse.ok) {
+              return { file, data: null };
+            }
+            return { file, data: await historyResponse.json() };
+          } catch (error) {
+            return { file, data: null };
+          }
+        })
+      );
+
+      historyResults.forEach(({ file, data }) => {
+        if (data && data.series) {
+          state.historySources[file] = data;
+        }
+      });
+
+      if (!state.historySources["history.json"]) {
+        const availableSource = Object.keys(state.historySources)[0];
+        if (availableSource) {
+          state.historySource = availableSource;
+        }
       }
     } catch (error) {
-      state.history = { series: {} };
+      state.historySources = {};
     }
+
+    updateHistoryToggleUI();
 
     renderTags(buildTags(state.data));
 
@@ -321,6 +511,24 @@ const init = async () => {
         closeModal();
       }
     });
+
+    if (elements.historyToggle) {
+      elements.historyToggle.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button || button.disabled) {
+          return;
+        }
+        const source = button.dataset.source;
+        if (!source || source === state.historySource) {
+          return;
+        }
+        state.historySource = source;
+        updateHistoryToggleUI();
+        if (state.activeItem && !elements.modal.hidden) {
+          renderHistoryChart(state.activeItem);
+        }
+      });
+    }
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !elements.modal.hidden) {

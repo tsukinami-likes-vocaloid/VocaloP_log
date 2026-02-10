@@ -405,14 +405,51 @@ select:focus {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(18, 18, 18, 0.02);
+  position: relative;
 }
 
 .modal-chart-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--muted);
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.modal-chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.toggle button {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.toggle button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.toggle button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .modal-chart-range {
@@ -421,12 +458,38 @@ select:focus {
 
 .modal-chart-svg {
   width: 100%;
-  height: 120px;
+  height: auto;
+  aspect-ratio: 8 / 3;
+  margin-top: 2px;
+}
+
+.chart-axis-label {
+  fill: rgba(18, 18, 18, 0.55);
+  font-size: 8px;
+}
+
+.chart-grid-line {
+  stroke: rgba(18, 18, 18, 0.08);
+  stroke-width: 1;
+}
+
+.modal-chart-tooltip {
+  position: absolute;
+  z-index: 1;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  pointer-events: none;
+  transform: translate(-50%, -110%);
+  white-space: nowrap;
 }
 
 .modal-history-empty {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   color: var(--muted);
 }
 
@@ -466,5 +529,11 @@ select:focus {
 
   .hero-panel {
     order: -1;
+  }
+
+  .modal-chart-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }
