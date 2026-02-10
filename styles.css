@@ -55,10 +55,7 @@ body {
 }
 
 .hero {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  align-items: center;
+  display: block;
   margin-bottom: 24px;
 }
 
@@ -81,11 +78,6 @@ h1 {
   font-size: 0.9rem;
   color: var(--muted);
   margin: 0;
-  max-width: 46ch;
-}
-
-.hero-copy {
-  order: 1;
 }
 
 .controls {

@@ -191,8 +191,6 @@ const applyFilters = () => {
     const target = [
       item["データ名"],
       item["よみがな"],
-      item["説明"],
-      ...(item["タグ"] || []),
     ]
       .map(normalize)
       .join(" ");
@@ -217,6 +215,8 @@ const render = () => {
 
   elements.grid.innerHTML = "";
   elements.empty.hidden = total !== 0;
+
+  const fragment = document.createDocumentFragment();
 
   state.filtered.forEach((item) => {
     const node = elements.template.content.cloneNode(true);
@@ -253,8 +253,9 @@ const render = () => {
       }
     });
 
-    elements.grid.appendChild(node);
+    fragment.appendChild(node);
   });
+  elements.grid.appendChild(fragment);
 };
 
 const openModal = (item) => {
