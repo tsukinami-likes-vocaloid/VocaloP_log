@@ -154,15 +154,8 @@ const updateSubscribers = async () => {
     }
 
     upsertHistory(history.series, channelId, today, subscriberCount);
-
-    if (channel["登録者数"] !== subscriberCount) {
-      channel["登録者数"] = subscriberCount;
-      updated += 1;
-    }
+    updated += 1;
   });
-
-  const output = JSON.stringify({ channels }, null, "\t");
-  await fs.writeFile(DATA_PATH, `${output}\n`, "utf8");
   Object.keys(history.series).forEach((channelId) => {
     history.series[channelId] = compactSeries(
       history.series[channelId],

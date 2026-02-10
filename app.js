@@ -73,9 +73,44 @@ const getChannelId = (url) => {
   return null;
 };
 
+const getHistoryPayloadForSubs = () =>
+  state.historySources["history.json"] ||
+  state.historySources[state.historySource] ||
+  { series: {} };
+
+const getLatestSubsFromSeries = (series) => {
+  if (!Array.isArray(series) || series.length === 0) {
+    return 0;
+  }
+
+  const latest = series.reduce((best, entry) => {
+    if (!entry || !entry.date) {
+      return best;
+    }
+    if (!best || entry.date > best.date) {
+      return entry;
+    }
+    return best;
+  }, null);
+
+  return latest && Number.isFinite(Number(latest.subs))
+    ? Number(latest.subs)
+    : 0;
+};
+
+const getLatestSubsForItem = (item) => {
+  const channelId = getChannelId(item["URL"]);
+  if (!channelId) {
+    return 0;
+  }
+  const historyPayload = getHistoryPayloadForSubs();
+  const series = historyPayload.series ? historyPayload.series[channelId] : null;
+  return getLatestSubsFromSeries(series);
+};
+
 const sorters = {
-  "subs-desc": (a, b) => b["登録者数"] - a["登録者数"],
-  "subs-asc": (a, b) => a["登録者数"] - b["登録者数"],
+  "subs-desc": (a, b) => getLatestSubsForItem(b) - getLatestSubsForItem(a),
+  "subs-asc": (a, b) => getLatestSubsForItem(a) - getLatestSubsForItem(b),
   "name-asc": (a, b) =>
     nameCollator.compare(getNameSortKey(a), getNameSortKey(b)),
 };
@@ -108,7 +143,7 @@ const applyFilters = () => {
   const tag = state.tag;
 
   const filtered = state.data.filter((item) => {
-    const subscriberCount = Number(item["登録者数"] || 0);
+    const subscriberCount = getLatestSubsForItem(item);
     if (subscriberCount <= 10000) {
       return false;
     }
@@ -136,7 +171,7 @@ const applyFilters = () => {
 const render = () => {
   const total = state.filtered.length;
   const eligibleTotal = state.data.filter(
-    (item) => Number(item["登録者数"] || 0) > 10000
+    (item) => getLatestSubsForItem(item) > 10000
   ).length;
   elements.summary.textContent =
     total === eligibleTotal
@@ -165,7 +200,8 @@ const render = () => {
 
     name.textContent = item["データ名"] || "名称未設定";
     reading.textContent = item["よみがな"] ? `よみ: ${item["よみがな"]}` : "";
-    subs.textContent = `登録者数: ${formatSubs.format(item["登録者数"] || 0)}`;
+    const latestSubs = getLatestSubsForItem(item);
+    subs.textContent = `登録者数: ${formatSubs.format(latestSubs)}`;
 
     (item["タグ"] || []).forEach((tag) => {
       const chip = document.createElement("span");
@@ -203,9 +239,8 @@ const openModal = (item) => {
   elements.modalReading.textContent = item["よみがな"]
     ? `よみ: ${item["よみがな"]}`
     : "";
-  elements.modalSubs.textContent = `登録者数: ${formatSubs.format(
-    item["登録者数"] || 0
-  )}`;
+  const latestSubs = getLatestSubsForItem(item);
+  elements.modalSubs.textContent = `登録者数: ${formatSubs.format(latestSubs)}`;
   elements.modalTags.innerHTML = "";
   (item["タグ"] || []).forEach((tag) => {
     const chip = document.createElement("span");
