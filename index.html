@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VocaloP Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-orbit" aria-hidden="true"></div>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <main class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">VocaloP Atlas 2026</p>
+          <h1>チャンネル登録者1万人超のボカロP記録</h1>
+          <p class="lead">
+            data.jsonの記録をもとに、名前・よみがな・登録者数・タグをまとめて閲覧できます。
+          </p>
+        </div>
+        <div class="hero-panel">
+          <div class="stat">
+            <span class="stat-label">エントリー数</span>
+            <span id="stat-total" class="stat-value">--</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="controls">
+        <label class="search" for="search-input">
+          <span>検索</span>
+          <input
+            id="search-input"
+            type="search"
+            placeholder="名前 / よみがな / タグ"
+            autocomplete="off"
+          />
+        </label>
+        <label class="select" for="sort-select">
+          <span>並び替え</span>
+          <select id="sort-select">
+            <option value="subs-desc">登録者数 多い順</option>
+            <option value="subs-asc">登録者数 少ない順</option>
+            <option value="name-asc">名前 (A-Z / あ-ん)</option>
+          </select>
+        </label>
+        <div class="tag-filter" id="tag-filter" aria-label="タグ">
+          <!-- tag buttons injected here -->
+        </div>
+      </section>
+
+      <section class="summary">
+        <p id="summary-text">読み込み中...</p>
+      </section>
+
+      <section id="grid" class="grid" aria-live="polite"></section>
+      <p id="empty" class="empty" hidden>一致するチャンネルがありません。</p>
+    </main>
+
+    <template id="card-template">
+      <article class="card">
+        <div class="avatar-wrap">
+          <img class="avatar" alt="" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="card-head">
+            <h2 class="name"></h2>
+            <span class="reading"></span>
+          </div>
+          <div class="meta">
+            <span class="subs"></span>
+          </div>
+          <div class="tags"></div>
+          <p class="desc"></p>
+          <a class="visit" target="_blank" rel="noopener">YouTubeを開く</a>
+        </div>
+      </article>
+    </template>
+
+    <div id="detail-modal" class="modal" hidden>
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="detail-name">
+        <button class="modal-close" type="button" data-close="true" aria-label="閉じる">
+          X
+        </button>
+        <div class="modal-header">
+          <img id="detail-icon" class="modal-avatar" alt="" />
+          <div>
+            <h2 id="detail-name" class="modal-name"></h2>
+            <p id="detail-reading" class="modal-reading"></p>
+          </div>
+        </div>
+        <p id="detail-subs" class="modal-subs"></p>
+        <div id="detail-tags" class="modal-tags"></div>
+        <p id="detail-desc" class="modal-desc"></p>
+        <a id="detail-link" class="modal-link" target="_blank" rel="noopener">YouTubeを開く</a>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
