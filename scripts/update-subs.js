@@ -87,7 +87,7 @@ const addMonths = (date, months) => {
   return next;
 };
 
-const compactSeries = (entries, cutoffDate, threshold) => {
+const compactSeries = (entries, cutoffDate) => {
   if (!entries || entries.length === 0) {
     return [];
   }
@@ -104,7 +104,14 @@ const compactSeries = (entries, cutoffDate, threshold) => {
   for (let i = 1; i < older.length - 1; i += 1) {
     const current = older[i];
     const lastKept = compacted[compacted.length - 1];
-    if (Math.abs(current.subs - lastKept.subs) >= threshold) {
+    const lastDate = parseDate(lastKept.date);
+    const currentDate = parseDate(current.date);
+    const daysSinceLast = (currentDate - lastDate) / (1000 * 60 * 60 * 24);
+    const dynamicThreshold = Math.abs(lastKept.subs || 0) / 1000;
+    if (
+      daysSinceLast >= 7 ||
+      Math.abs(current.subs - lastKept.subs) >= dynamicThreshold
+    ) {
       compacted.push(current);
     }
   }
@@ -127,8 +134,7 @@ const updateSubscribers = async () => {
   const channels = Array.isArray(data.channels) ? data.channels : [];
   const history = await loadHistory();
   const today = new Date().toISOString().slice(0, 10);
-  const cutoffDate = addMonths(parseDate(today), -6);
-  const changeThreshold = 1000;
+  const cutoffDate = addMonths(parseDate(today), -1);
 
   const ids = channels
     .map((channel) => parseChannelId(channel.URL))
@@ -159,8 +165,7 @@ const updateSubscribers = async () => {
   Object.keys(history.series).forEach((channelId) => {
     history.series[channelId] = compactSeries(
       history.series[channelId],
-      cutoffDate,
-      changeThreshold
+      cutoffDate
     );
   });
   history.updatedAt = today;

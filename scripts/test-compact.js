@@ -12,7 +12,7 @@ const addMonths = (date, months) => {
   return next;
 };
 
-const compactSeries = (entries, cutoffDate, threshold) => {
+const compactSeries = (entries, cutoffDate) => {
   if (!entries || entries.length === 0) {
     return [];
   }
@@ -29,7 +29,14 @@ const compactSeries = (entries, cutoffDate, threshold) => {
   for (let i = 1; i < older.length - 1; i += 1) {
     const current = older[i];
     const lastKept = compacted[compacted.length - 1];
-    if (Math.abs(current.subs - lastKept.subs) >= threshold) {
+    const lastDate = parseDate(lastKept.date);
+    const currentDate = parseDate(current.date);
+    const daysSinceLast = (currentDate - lastDate) / (1000 * 60 * 60 * 24);
+    const dynamicThreshold = Math.abs(lastKept.subs || 0) / 1000;
+    if (
+      daysSinceLast >= 7 ||
+      Math.abs(current.subs - lastKept.subs) >= dynamicThreshold
+    ) {
       compacted.push(current);
     }
   }
@@ -51,8 +58,7 @@ const run = async () => {
     throw new Error("COMPACT_TODAY or history.updatedAt is required.");
   }
 
-  const threshold = Number(process.env.COMPACT_THRESHOLD || 1000);
-  const cutoffDate = addMonths(parseDate(today), -6);
+  const cutoffDate = addMonths(parseDate(today), -1);
 
   const series = history.series || {};
   const result = { updatedAt: today, series: {} };
@@ -62,7 +68,7 @@ const run = async () => {
   let changedChannels = 0;
 
   Object.entries(series).forEach(([channelId, entries]) => {
-    const compacted = compactSeries(entries, cutoffDate, threshold);
+    const compacted = compactSeries(entries, cutoffDate);
     result.series[channelId] = compacted;
 
     beforeTotal += entries.length;
@@ -77,7 +83,6 @@ const run = async () => {
 
   console.log("Compaction test complete.");
   console.log(`Date 기준: ${today} (cutoff: ${cutoffDate.toISOString().slice(0, 10)})`);
-  console.log(`Threshold: ±${threshold}`);
   console.log(`Total points: ${beforeTotal} -> ${afterTotal}`);
   console.log(`Channels compacted: ${changedChannels}`);
   console.log(`Output: ${OUTPUT_PATH}`);

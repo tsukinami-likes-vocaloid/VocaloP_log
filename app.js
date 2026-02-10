@@ -33,6 +33,9 @@ const elements = {
   historyEmpty: document.getElementById("detail-history-empty"),
   historyTooltip: document.getElementById("detail-history-tooltip"),
   historyToggle: document.getElementById("history-source-toggle"),
+  chartDetails: document.querySelector(".chart-details"),
+  chartSummary: document.querySelector(".chart-summary"),
+  chartContent: document.querySelector(".modal-chart"),
 };
 
 const formatSubs = new Intl.NumberFormat("ja-JP");
@@ -421,11 +424,16 @@ const renderHistoryChart = (item) => {
     ${xAxisLabels}
   `;
 
+  const formatDateForRange = (dateStr) => {
+    const [y, m, d] = dateStr.split("-");
+    return `${Number(y)}/${Number(m)}/${Number(d)}`;
+  };
+
   elements.historyChart.style.display = "block";
   elements.historyEmpty.hidden = true;
-  elements.historyRange.textContent = `${sorted[0].date} - ${
-    sorted[sorted.length - 1].date
-  }`;
+  elements.historyRange.textContent = `${formatDateForRange(
+    sorted[0].date
+  )} - ${formatDateForRange(sorted[sorted.length - 1].date)}`;
   elements.historyTooltip.hidden = true;
 
   const dotNodes = elements.historyChart.querySelectorAll(".chart-dot");
@@ -561,6 +569,59 @@ const init = async () => {
         updateHistoryToggleUI();
         if (state.activeItem && !elements.modal.hidden) {
           renderHistoryChart(state.activeItem);
+        }
+      });
+    }
+
+    if (elements.chartSummary) {
+      elements.chartSummary.addEventListener("click", (e) => {
+        e.preventDefault();
+        const details = elements.chartDetails;
+        const content = elements.chartContent;
+        if (!details || !content) return;
+
+        if (details.open) {
+          // Closing
+          const startHeight = content.offsetHeight;
+          content.style.height = `${startHeight}px`;
+          content.style.overflow = "hidden";
+          
+          requestAnimationFrame(() => {
+            content.style.transition = "height 0.3s ease-out, opacity 0.3s ease-out";
+            content.style.height = "0px";
+            content.style.opacity = "0";
+          });
+
+          content.addEventListener("transitionend", function handler() {
+            details.removeAttribute("open");
+            content.style.height = "";
+            content.style.opacity = "";
+            content.style.transition = "";
+            content.style.overflow = "";
+            content.removeEventListener("transitionend", handler);
+          }, { once: true });
+        } else {
+          // Opening
+          details.setAttribute("open", "");
+          const endHeight = content.scrollHeight;
+          
+          content.style.height = "0px";
+          content.style.opacity = "0";
+          content.style.overflow = "hidden";
+          content.style.transition = "height 0.3s ease-out, opacity 0.3s ease-out";
+
+          requestAnimationFrame(() => {
+            content.style.height = `${endHeight}px`;
+            content.style.opacity = "1";
+          });
+
+          content.addEventListener("transitionend", function handler() {
+            content.style.height = "";
+            content.style.opacity = "";
+            content.style.transition = "";
+            content.style.overflow = "";
+            content.removeEventListener("transitionend", handler);
+          }, { once: true });
         }
       });
     }

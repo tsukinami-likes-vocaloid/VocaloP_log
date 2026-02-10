@@ -90,33 +90,41 @@
             <p id="detail-reading" class="modal-reading"></p>
           </div>
         </div>
-        <p id="detail-subs" class="modal-subs"></p>
+        <div class="modal-meta">
+          <p id="detail-subs" class="modal-subs"></p>
+          <a id="detail-link" class="modal-link" target="_blank" rel="noopener">
+            <svg class="modal-link-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            YouTubeを開く
+          </a>
+        </div>
         <div id="detail-tags" class="modal-tags"></div>
-        <div class="modal-chart-head">
-          <span>登録者数の推移</span>
-          <div class="modal-chart-controls">
-            <div id="history-source-toggle" class="toggle" role="group" aria-label="履歴データ">
-              <button type="button" data-source="history.json">history.json</button>
-              <button type="button" data-source="history.compacted.json">history.compacted.json</button>
+        <details class="chart-details" open>
+          <summary class="chart-summary">
+            <span>登録者数の推移</span>
+            <svg class="chart-accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </summary>
+          <div class="modal-chart">
+            <div class="modal-chart-controls">
+              <div id="history-source-toggle" class="toggle" role="group" aria-label="履歴データ">
+                <button type="button" data-source="history.json">history.json</button>
+                <button type="button" data-source="history.compacted.json">history.compacted.json</button>
+              </div>
+              <span id="detail-history-range" class="modal-chart-range"></span>
             </div>
-            <span id="detail-history-range" class="modal-chart-range"></span>
+            <svg
+              id="detail-chart"
+              class="modal-chart-svg"
+              viewBox="0 0 320 120"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+            ></svg>
+            <div id="detail-history-tooltip" class="modal-chart-tooltip" hidden></div>
+            <p id="detail-history-empty" class="modal-history-empty" hidden>
+              履歴がまだありません。
+            </p>
           </div>
-        </div>
-        <div class="modal-chart">
-          <svg
-            id="detail-chart"
-            class="modal-chart-svg"
-            viewBox="0 0 320 120"
-            preserveAspectRatio="xMidYMid meet"
-            aria-hidden="true"
-          ></svg>
-          <div id="detail-history-tooltip" class="modal-chart-tooltip" hidden></div>
-          <p id="detail-history-empty" class="modal-history-empty" hidden>
-            履歴がまだありません。
-          </p>
-        </div>
+        </details>
         <p id="detail-desc" class="modal-desc"></p>
-        <a id="detail-link" class="modal-link" target="_blank" rel="noopener">YouTubeを開く</a>
       </div>
     </div>
 

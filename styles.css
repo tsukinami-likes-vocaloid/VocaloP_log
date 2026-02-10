@@ -9,6 +9,7 @@
   --shadow: 0 12px 30px rgba(18, 18, 18, 0.08);
   --radius: 16px;
   --x-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2.4' stroke-linecap='round'><path d='M6 6l12 12M18 6L6 18'/></svg>");
+  --chevron-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23121212' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
 }
 
 * {
@@ -140,12 +141,12 @@ select {
 
 select {
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
-  background-size: 5px 5px, 5px 5px;
+  background-image: var(--chevron-icon);
+  background-position: right 10px center;
+  background-size: 16px 16px;
   background-repeat: no-repeat;
   padding-right: 32px;
+  cursor: pointer;
 }
 
 select:hover {
@@ -376,6 +377,13 @@ select:focus {
   align-items: center;
 }
 
+.modal-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+}
+
 .modal-avatar {
   width: 70px;
   height: 70px;
@@ -426,6 +434,15 @@ select:focus {
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modal-link-icon {
+  width: 1.25em;
+  height: 1.25em;
+  fill: currentColor;
 }
 
 .modal-chart {
@@ -438,20 +455,44 @@ select:focus {
   position: relative;
 }
 
-.modal-chart-head {
+.chart-details {
+  margin-top: 12px;
+}
+
+.chart-summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.72rem;
-  color: var(--muted);
-  margin-top: 8px;
-  margin-bottom: 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 8px 0;
+  user-select: none;
+  list-style: none;
+}
+
+.chart-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chart-accordion-icon {
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+}
+
+.chart-details[open] .chart-accordion-icon {
+  transform: rotate(180deg);
 }
 
 .modal-chart-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 4px 10px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
 }
 
 .toggle {
@@ -559,11 +600,5 @@ select:focus {
 
   .hero-panel {
     order: -1;
-  }
-
-  .modal-chart-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
   }
 }
