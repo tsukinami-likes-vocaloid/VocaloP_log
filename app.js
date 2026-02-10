@@ -4,13 +4,15 @@ const state = {
   tag: "all",
   search: "",
   sort: "subs-desc",
+  history: {
+    series: {},
+  },
 };
 
 const fallbackImage =
   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><rect width='100%' height='100%' fill='%23f2f2f2'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%23777'>No%20Image</text></svg>";
 
 const elements = {
-  total: document.getElementById("stat-total"),
   grid: document.getElementById("grid"),
   empty: document.getElementById("empty"),
   search: document.getElementById("search-input"),
@@ -26,6 +28,9 @@ const elements = {
   modalTags: document.getElementById("detail-tags"),
   modalDesc: document.getElementById("detail-desc"),
   modalLink: document.getElementById("detail-link"),
+  historyRange: document.getElementById("detail-history-range"),
+  historyChart: document.getElementById("detail-chart"),
+  historyEmpty: document.getElementById("detail-history-empty"),
 };
 
 const formatSubs = new Intl.NumberFormat("ja-JP");
@@ -45,6 +50,25 @@ const nameCollator = new Intl.Collator("ja", {
 const getNameSortKey = (item) => {
   const primary = item["よみがな"] || item["データ名"] || "";
   return primary.toString().replace(/[\s\u3000]+/g, "");
+};
+
+const getChannelId = (url) => {
+  if (!url) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    const channelIndex = parts.indexOf("channel");
+    if (channelIndex !== -1 && parts[channelIndex + 1]) {
+      return parts[channelIndex + 1];
+    }
+  } catch (error) {
+    return null;
+  }
+
+  return null;
 };
 
 const sorters = {
@@ -82,6 +106,11 @@ const applyFilters = () => {
   const tag = state.tag;
 
   const filtered = state.data.filter((item) => {
+    const subscriberCount = Number(item["登録者数"] || 0);
+    if (subscriberCount <= 10000) {
+      return false;
+    }
+
     const matchesTag =
       tag === "all" || (item["タグ"] || []).some((t) => t === tag);
 
@@ -104,10 +133,13 @@ const applyFilters = () => {
 
 const render = () => {
   const total = state.filtered.length;
+  const eligibleTotal = state.data.filter(
+    (item) => Number(item["登録者数"] || 0) > 10000
+  ).length;
   elements.summary.textContent =
-    total === state.data.length
+    total === eligibleTotal
       ? `全${total}件を表示中`
-      : `${state.data.length}件中 ${total}件を表示中`;
+      : `${eligibleTotal}件中 ${total}件を表示中`;
 
   elements.grid.innerHTML = "";
   elements.empty.hidden = total !== 0;
@@ -181,8 +213,74 @@ const openModal = (item) => {
   elements.modalDesc.textContent = item["説明"] || "";
   elements.modalLink.href = item["URL"] || "#";
 
+  renderHistoryChart(item);
+
   elements.modal.hidden = false;
   document.body.style.overflow = "hidden";
+};
+
+const renderHistoryChart = (item) => {
+  const channelId = getChannelId(item["URL"]);
+  const series = channelId && state.history.series
+    ? state.history.series[channelId]
+    : null;
+
+  if (!series || series.length < 2) {
+    elements.historyChart.innerHTML = "";
+    elements.historyChart.style.display = "none";
+    elements.historyEmpty.hidden = false;
+    elements.historyRange.textContent = "";
+    return;
+  }
+
+  const sorted = [...series].sort((a, b) => a.date.localeCompare(b.date));
+  const values = sorted.map((entry) => entry.subs);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+
+  const width = 320;
+  const height = 120;
+  const padding = 12;
+  const step = (width - padding * 2) / (sorted.length - 1);
+
+  const points = sorted.map((entry, index) => {
+    const x = padding + step * index;
+    const y =
+      height -
+      padding -
+      ((entry.subs - min) / range) * (height - padding * 2);
+    return `${x},${y}`;
+  });
+
+  const dots = sorted
+    .map((entry, index) => {
+      const x = padding + step * index;
+      const y =
+        height -
+        padding -
+        ((entry.subs - min) / range) * (height - padding * 2);
+      return `<circle cx="${x}" cy="${y}" r="2.5" fill="${"#1f9c9a"}" />`;
+    })
+    .join("");
+
+  elements.historyChart.innerHTML = `
+    <polyline
+      fill="none"
+      stroke="#1f9c9a"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      points="${points.join(" ")}"
+    />
+    ${dots}
+  `;
+
+  elements.historyChart.style.display = "block";
+  elements.historyEmpty.hidden = true;
+  elements.historyRange.textContent = `${sorted[0].date} - ${
+    sorted[sorted.length - 1].date
+  }`;
 };
 
 const closeModal = () => {
@@ -197,7 +295,15 @@ const init = async () => {
     state.data = payload.channels || [];
     state.filtered = [...state.data];
 
-    elements.total.textContent = formatSubs.format(state.data.length);
+    try {
+      const historyResponse = await fetch("./history.json");
+      if (historyResponse.ok) {
+        state.history = await historyResponse.json();
+      }
+    } catch (error) {
+      state.history = { series: {} };
+    }
+
     renderTags(buildTags(state.data));
 
     elements.search.addEventListener("input", (event) => {

@@ -17,18 +17,12 @@
     <div class="bg-grid" aria-hidden="true"></div>
     <main class="app">
       <header class="hero">
-        <div>
+        <div class="hero-copy">
           <p class="eyebrow">VocaloP Atlas 2026</p>
           <h1>チャンネル登録者1万人超のボカロP記録</h1>
           <p class="lead">
             data.jsonの記録をもとに、名前・よみがな・登録者数・タグをまとめて閲覧できます。
           </p>
-        </div>
-        <div class="hero-panel">
-          <div class="stat">
-            <span class="stat-label">エントリー数</span>
-            <span id="stat-total" class="stat-value">--</span>
-          </div>
         </div>
       </header>
 
@@ -98,6 +92,22 @@
         </div>
         <p id="detail-subs" class="modal-subs"></p>
         <div id="detail-tags" class="modal-tags"></div>
+        <div class="modal-chart">
+          <div class="modal-chart-head">
+            <span>登録者数の推移</span>
+            <span id="detail-history-range" class="modal-chart-range"></span>
+          </div>
+          <svg
+            id="detail-chart"
+            class="modal-chart-svg"
+            viewBox="0 0 320 120"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          ></svg>
+          <p id="detail-history-empty" class="modal-history-empty" hidden>
+            履歴がまだありません。
+          </p>
+        </div>
         <p id="detail-desc" class="modal-desc"></p>
         <a id="detail-link" class="modal-link" target="_blank" rel="noopener">YouTubeを開く</a>
       </div>

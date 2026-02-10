@@ -2,6 +2,7 @@ const fs = require("fs/promises");
 const path = require("path");
 
 const DATA_PATH = path.join(__dirname, "..", "data.json");
+const HISTORY_PATH = path.join(__dirname, "..", "history.json");
 const API_KEY = process.env.YOUTUBE_API_KEY;
 
 const parseChannelId = (url) => {
@@ -53,6 +54,31 @@ const fetchStats = async (ids) => {
   return statsMap;
 };
 
+const loadHistory = async () => {
+  try {
+    const raw = await fs.readFile(HISTORY_PATH, "utf8");
+    const history = JSON.parse(raw);
+    return {
+      updatedAt: history.updatedAt || null,
+      series: history.series || {},
+    };
+  } catch (error) {
+    return { updatedAt: null, series: {} };
+  }
+};
+
+const upsertHistory = (series, channelId, date, subs) => {
+  const list = Array.isArray(series[channelId]) ? series[channelId] : [];
+  const existing = list.find((entry) => entry.date === date);
+  if (existing) {
+    existing.subs = subs;
+  } else {
+    list.push({ date, subs });
+  }
+  list.sort((a, b) => a.date.localeCompare(b.date));
+  series[channelId] = list;
+};
+
 const updateSubscribers = async () => {
   if (!API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not set.");
@@ -61,6 +87,8 @@ const updateSubscribers = async () => {
   const raw = await fs.readFile(DATA_PATH, "utf8");
   const data = JSON.parse(raw);
   const channels = Array.isArray(data.channels) ? data.channels : [];
+  const history = await loadHistory();
+  const today = new Date().toISOString().slice(0, 10);
 
   const ids = channels
     .map((channel) => parseChannelId(channel.URL))
@@ -85,6 +113,8 @@ const updateSubscribers = async () => {
       return;
     }
 
+    upsertHistory(history.series, channelId, today, subscriberCount);
+
     if (channel["登録者数"] !== subscriberCount) {
       channel["登録者数"] = subscriberCount;
       updated += 1;
@@ -93,6 +123,9 @@ const updateSubscribers = async () => {
 
   const output = JSON.stringify({ channels }, null, "\t");
   await fs.writeFile(DATA_PATH, `${output}\n`, "utf8");
+  history.updatedAt = today;
+  const historyOutput = JSON.stringify(history, null, "\t");
+  await fs.writeFile(HISTORY_PATH, `${historyOutput}\n`, "utf8");
 
   return { total: channels.length, updated };
 };
