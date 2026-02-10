@@ -1,7 +1,7 @@
 const state = {
   data: [],
   filtered: [],
-  tag: "all",
+  selectedTags: new Set(),
   search: "",
   sort: "subs-desc",
   historySource: "history.json",
@@ -130,11 +130,41 @@ const renderTags = (tags) => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = tag === "all" ? "すべて" : tag;
-    if (state.tag === tag) {
-      button.classList.add("active");
+    button.dataset.tag = tag;
+    
+    // Initial active state
+    if (tag === "all") {
+      if (state.selectedTags.size === 0) {
+        button.classList.add("active");
+      }
+    } else {
+      if (state.selectedTags.has(tag)) {
+        button.classList.add("active");
+      }
     }
+
     button.addEventListener("click", () => {
-      state.tag = tag;
+      // Toggle logic
+      if (tag === "all") {
+        state.selectedTags.clear();
+      } else {
+        if (state.selectedTags.has(tag)) {
+          state.selectedTags.delete(tag);
+        } else {
+          state.selectedTags.add(tag);
+        }
+      }
+
+      // Update UI classes
+      Array.from(elements.tagFilter.children).forEach((btn) => {
+        const btnTag = btn.dataset.tag;
+        if (btnTag === "all") {
+          btn.classList.toggle("active", state.selectedTags.size === 0);
+        } else {
+          btn.classList.toggle("active", state.selectedTags.has(btnTag));
+        }
+      });
+
       applyFilters();
     });
     elements.tagFilter.appendChild(button);
@@ -143,7 +173,7 @@ const renderTags = (tags) => {
 
 const applyFilters = () => {
   const search = normalize(state.search);
-  const tag = state.tag;
+  const selectedTags = state.selectedTags;
 
   const filtered = state.data.filter((item) => {
     const subscriberCount = getLatestSubsForItem(item);
@@ -151,8 +181,12 @@ const applyFilters = () => {
       return false;
     }
 
-    const matchesTag =
-      tag === "all" || (item["タグ"] || []).some((t) => t === tag);
+    let matchesTag = true;
+    if (selectedTags.size > 0) {
+      // OR condition: item has ANY of the selected tags
+      const itemTags = item["タグ"] || [];
+      matchesTag = itemTags.some((t) => selectedTags.has(t));
+    }
 
     const target = [
       item["データ名"],
@@ -189,11 +223,8 @@ const render = () => {
     const card = node.querySelector(".card");
     const img = node.querySelector(".avatar");
     const name = node.querySelector(".name");
-    const reading = node.querySelector(".reading");
     const subs = node.querySelector(".subs");
     const tags = node.querySelector(".tags");
-    const desc = node.querySelector(".desc");
-    const link = node.querySelector(".visit");
 
     img.src = item["アイコンの画像URL"] || fallbackImage;
     img.alt = `${item["データ名"]} のアイコン`;
@@ -202,7 +233,6 @@ const render = () => {
     });
 
     name.textContent = item["データ名"] || "名称未設定";
-    reading.textContent = item["よみがな"] ? `よみ: ${item["よみがな"]}` : "";
     const latestSubs = getLatestSubsForItem(item);
     subs.textContent = `登録者数: ${formatSubs.format(latestSubs)}`;
 
@@ -212,9 +242,6 @@ const render = () => {
       chip.textContent = tag;
       tags.appendChild(chip);
     });
-
-    desc.textContent = item["説明"] || "";
-    link.href = item["URL"] || "#";
 
     card.setAttribute("role", "button");
     card.tabIndex = 0;
@@ -546,6 +573,7 @@ const init = async () => {
 
     elements.sort.addEventListener("change", (event) => {
       state.sort = event.target.value;
+      event.target.blur(); // Remove focus to improve UX for the rotated icon style
       applyFilters();
     });
 

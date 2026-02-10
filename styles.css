@@ -10,6 +10,7 @@
   --radius: 16px;
   --x-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2.4' stroke-linecap='round'><path d='M6 6l12 12M18 6L6 18'/></svg>");
   --chevron-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23121212' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  --chevron-icon-up: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23121212' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 15 12 9 18 15'/></svg>");
 }
 
 * {
@@ -83,36 +84,8 @@ h1 {
   max-width: 46ch;
 }
 
-.hero-panel {
-  background: var(--panel);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-  display: grid;
-  gap: 12px;
-  order: 2;
-}
-
 .hero-copy {
   order: 1;
-}
-
-.stat {
-  display: grid;
-  gap: 6px;
-}
-
-.stat-label {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--muted);
-}
-
-.stat-value {
-  font-size: 1.05rem;
-  font-weight: 600;
 }
 
 .controls {
@@ -153,15 +126,26 @@ select:hover {
   border-color: rgba(31, 156, 154, 0.35);
 }
 
+select:focus {
+  background-image: var(--chevron-icon-up);
+}
+
 input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;
-  height: 18px;
-  width: 18px;
+  height: 26px;
+  width: 26px;
   background-image: var(--x-icon);
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 10px 10px;
+  background-size: 12px 12px;
   cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  margin-right: -4px;
+}
+
+input[type="search"]::-webkit-search-cancel-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 input:focus,
@@ -192,6 +176,7 @@ select:focus {
   background: var(--accent);
   color: white;
   border-color: transparent;
+  box-shadow: 0 4px 10px rgba(31, 156, 154, 0.4);
 }
 
 .tag-filter button:hover {
@@ -206,16 +191,6 @@ select:focus {
   margin-bottom: 12px;
   font-size: 0.82rem;
   color: var(--muted);
-}
-
-.ghost {
-  border: 1px solid var(--line);
-  background: transparent;
-  border-radius: 10px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-family: inherit;
-  color: var(--ink);
 }
 
 .grid {
@@ -283,10 +258,6 @@ select:focus {
   font-family: "Space Grotesk", sans-serif;
 }
 
-.reading {
-  display: none;
-}
-
 .meta {
   font-size: 0.78rem;
   font-weight: 500;
@@ -303,18 +274,6 @@ select:focus {
   border-radius: 999px;
   background: rgba(18, 18, 18, 0.06);
   font-size: 0.68rem;
-}
-
-.desc {
-  display: none;
-}
-
-.visit {
-  display: none;
-}
-
-.visit::after {
-  content: "↗";
 }
 
 .modal {
@@ -342,11 +301,33 @@ select:focus {
   border-radius: 18px;
   padding: 18px;
   width: min(560px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 24px 60px rgba(18, 18, 18, 0.2);
   display: grid;
   gap: 10px;
   border: 1px solid var(--line);
   animation: modal-in 0.25s ease;
+}
+
+.modal-card::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-card::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 18px 0;
+}
+
+.modal-card::-webkit-scrollbar-thumb {
+  background: rgba(18, 18, 18, 0.2);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.modal-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(18, 18, 18, 0.35);
 }
 
 .modal-close {
@@ -358,15 +339,21 @@ select:focus {
   background-image: var(--x-icon);
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 10px 10px;
-  width: 18px;
-  height: 18px;
+  background-size: 16px 16px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   cursor: pointer;
   font-family: inherit;
   font-size: 0;
   display: grid;
   place-items: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.modal-close:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 
@@ -427,6 +414,7 @@ select:focus {
   color: var(--muted);
   line-height: 1.5;
   font-size: 0.9rem;
+  white-space: pre-wrap;
 }
 
 .modal-link {
@@ -592,13 +580,15 @@ select:focus {
   }
 }
 
+.modal-section-title {
+  margin: 16px 0 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 @media (max-width: 720px) {
   .summary {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .hero-panel {
-    order: -1;
   }
 }
