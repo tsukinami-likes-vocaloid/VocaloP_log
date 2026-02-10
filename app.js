@@ -279,7 +279,7 @@ const renderHistoryChart = (item) => {
   const values = sorted.map((entry) => entry.subs);
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const rawRange = max - min || 1;
+  const rawRange = Math.max(max - min, 10000);
   const niceStep = (rangeValue, ticks) => {
     const rough = rangeValue / ticks;
     const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
