@@ -8,7 +8,7 @@
 			"タグ": [
 				"ボカロP"
 			],
-			"説明": "まだ説明が記入されていません。"
+			"説明": ""
 		},
 		{
 			"データ名": "R Sound Design",
@@ -16,9 +16,9 @@
 			"アイコンの画像URL": "https://yt3.ggpht.com/3NHnVj3AAMgIpGqQmxmma3OwOxdosyxbuMujUZbYoqfFHXxYQPAO0Ip3g4Ch23ZPo22Ju_bBfw=s800-c-k-c0x00ffffff-no-rj",
 			"よみがな": "あーるさうんどでざいん",
 			"タグ": [
-				"ボカロP"
+				"元ボカロP"
 			],
-			"説明": "まだ説明が記入されていません。"
+			"説明": "あいうえお\nあいうえお\nあいうえお\nあいうえお\nあいうえお\nあいうえお\nあいうえお"
 		},
 		{
 			"データ名": "Aura Qualic",
@@ -26,7 +26,7 @@
 			"アイコンの画像URL": "https://yt3.ggpht.com/KO2Z4i2OQR3gl3LooZDET4bg-tC4mQl2vAUbxJC77uLoSLBHgf6uceaMmm6PRTunTABlm3cnSDo=s800-c-k-c0x00ffffff-no-rj",
 			"よみがな": "あうらくおりっく",
 			"タグ": [
-				"ボカロP"
+				"準ボカロP"
 			],
 			"説明": "まだ説明が記入されていません。"
 		},
@@ -86,7 +86,7 @@
 			"アイコンの画像URL": "https://yt3.ggpht.com/DjOfJ9RGeoVNBkYsvGnk3Yh8D-w9iK18fCIc0czs2B-gzHK3N2ZubMgs4Vf_WuJbq2yz1O0T=s800-c-k-c0x00ffffff-no-rj",
 			"よみがな": "あかてぃん",
 			"タグ": [
-				"ボカロP"
+				"準ボカロP"
 			],
 			"説明": "まだ説明が記入されていません。"
 		},
@@ -971,16 +971,6 @@
 			"説明": "まだ説明が記入されていません。"
 		},
 		{
-			"データ名": "音戯箱",
-			"URL": "https://www.youtube.com/channel/UCyjJeg0_pfsPzUJsqCv15WA",
-			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_nUckUT7qix1BIfbHeDgHc3Yxiyfaer63HV5UDXKTukMK4=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "おとぎばこ",
-			"タグ": [
-				"ボカロP"
-			],
-			"説明": "まだ説明が記入されていません。"
-		},
-		{
 			"データ名": "Omoi",
 			"URL": "https://www.youtube.com/channel/UCQhaO68SSoKmQ9RBRCy7pAQ",
 			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_mi5iojxVW0eFO8GtMY9ShtY1he2goI3LYN-ifDsHKcBto=s800-c-k-c0x00ffffff-no-rj",
@@ -1265,16 +1255,6 @@
 			"URL": "https://www.youtube.com/channel/UCmSl4E0Jy6cxV4b1CH8HGvQ",
 			"アイコンの画像URL": "https://yt3.ggpht.com/Wt17W_ssKUjCdVqn5L-076R_KpROxyD-MCLUErpk-uAqbk92nSkvfMMP8lavrQptcRYM_ou1=s800-c-k-c0x00ffffff-no-rj",
 			"よみがな": "きむらわいぴー",
-			"タグ": [
-				"ボカロP"
-			],
-			"説明": "まだ説明が記入されていません。"
-		},
-		{
-			"データ名": "kyaami",
-			"URL": "https://www.youtube.com/channel/UCAVz01ctYlyF1BTZZjzPnig",
-			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_lEOpuMqVMXQo89dWEOQDsZs2sQ-X11w4KqzbnI2kDvAX8=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "きゃーみ",
 			"タグ": [
 				"ボカロP"
 			],
@@ -1681,16 +1661,6 @@
 			"説明": "まだ説明が記入されていません。"
 		},
 		{
-			"データ名": "宛然サカナ",
-			"URL": "https://www.youtube.com/channel/UC7VHtt-FgSIYLjrkzra2Q5A",
-			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_kpr0LpCXaS0Q2dU1INuf9qV_70T7ARkxu00V_PUG6NuQ=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "さながらさかな",
-			"タグ": [
-				"ボカロP"
-			],
-			"説明": "まだ説明が記入されていません。"
-		},
-		{
 			"データ名": "ZANIO",
 			"URL": "https://www.youtube.com/channel/UCXGrxY7pkCZOPJjlvgMoydw",
 			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_kJFY8-RvLQmDtdXa5KPztseYiEN2_v8MLTj6r7Ms7Dtmc=s800-c-k-c0x00ffffff-no-rj",
@@ -1745,16 +1715,6 @@
 			"URL": "https://www.youtube.com/channel/UCth7Ai8KEXD8iQLDVXb4HUA",
 			"アイコンの画像URL": "https://yt3.ggpht.com/GwZM3screUvsgdhn3TsFHfX8yWHMisGnQ5vtejlYrH5b6P7rs7mixDyMxM3UhGddEhmnHLWjvg=s800-c-k-c0x00ffffff-no-rj",
 			"よみがな": "しーくん",
-			"タグ": [
-				"ボカロP"
-			],
-			"説明": "まだ説明が記入されていません。"
-		},
-		{
-			"データ名": "じーざす",
-			"URL": "https://www.youtube.com/channel/UCpJgF7I5iSL5_a3xtXgQJvw",
-			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_koktcjOev7sfSIdHe8fDZM0u8cXtvLXga9SM92OBaVKg=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "じーざす",
 			"タグ": [
 				"ボカロP"
 			],
@@ -2335,16 +2295,6 @@
 			"URL": "https://www.youtube.com/channel/UC80ttKvARb7Gslo7AgPOZeA",
 			"アイコンの画像URL": "https://yt3.ggpht.com/diQvUPoJ8ZL-DuZmELEzZIzFeqPJVmO5uDXdkNeX2mRUNCR0CyBUpRBtw8NzTiotUrlhmZIY=s800-c-k-c0x00ffffff-no-rj",
 			"よみがな": "だいばくはしん",
-			"タグ": [
-				"ボカロP"
-			],
-			"説明": "まだ説明が記入されていません。"
-		},
-		{
-			"データ名": "タカオカミズキ",
-			"URL": "https://www.youtube.com/channel/UCAVz01ctYlyF1BTZZjzPnig",
-			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_lEOpuMqVMXQo89dWEOQDsZs2sQ-X11w4KqzbnI2kDvAX8=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "たかおかみずき",
 			"タグ": [
 				"ボカロP"
 			],
@@ -3451,10 +3401,10 @@
 			"説明": "まだ説明が記入されていません。"
 		},
 		{
-			"データ名": "ひとしずく",
+			"データ名": "ひとしずく×やま△",
 			"URL": "https://www.youtube.com/channel/UCxKrjx1FDU81UXuwTgwYQHw",
 			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_k_zScnz2nndQz90MXk-Q79USfxJFs_HFUkrA6WPaEEZQ=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "ひとしずく",
+			"よみがな": "ひとしずくやまさんかっけい",
 			"タグ": [
 				"ボカロP"
 			],
@@ -3795,16 +3745,6 @@
 			"URL": "https://www.youtube.com/channel/UCmAutZSvFH5mkR9OoPtpOmQ",
 			"アイコンの画像URL": "https://yt3.ggpht.com/ULrb2OnNdA8z-hiqyqRFxmNaeuMq9_QwjU1tSyQB9Rekt9OIizfS9Y4wb_rdqLDmy7u3QIQqiQ=s800-c-k-c0x00ffffff-no-rj",
 			"よみがな": "まいき",
-			"タグ": [
-				"ボカロP"
-			],
-			"説明": "まだ説明が記入されていません。"
-		},
-		{
-			"データ名": "​マイナス",
-			"URL": "https://www.youtube.com/channel/UCpJgF7I5iSL5_a3xtXgQJvw",
-			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_koktcjOev7sfSIdHe8fDZM0u8cXtvLXga9SM92OBaVKg=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "まいなす",
 			"タグ": [
 				"ボカロP"
 			],
@@ -4211,16 +4151,6 @@
 			"説明": "まだ説明が記入されていません。"
 		},
 		{
-			"データ名": "やま△",
-			"URL": "https://www.youtube.com/channel/UCxKrjx1FDU81UXuwTgwYQHw",
-			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_k_zScnz2nndQz90MXk-Q79USfxJFs_HFUkrA6WPaEEZQ=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "やまさんかっけい",
-			"タグ": [
-				"ボカロP"
-			],
-			"説明": "まだ説明が記入されていません。"
-		},
-		{
 			"データ名": "yamada",
 			"URL": "https://www.youtube.com/channel/UCuu46BbNcOKVYdwnlohft_Q",
 			"アイコンの画像URL": "https://yt3.ggpht.com/x5I0nf83Y8h4khDk625T8uy9Yma6SlY4K2kk2wzWrZte7P5CWVFZtvkU9hTCOwjHcvQeL2TK=s800-c-k-c0x00ffffff-no-rj",
@@ -4425,16 +4355,6 @@
 			"URL": "https://www.youtube.com/channel/UCUCeZaZeJbEYAAzvMgrKOPQ",
 			"アイコンの画像URL": "https://yt3.ggpht.com/JSgwavckGcvjhT4f3WhTHGPy7btL1aFol8TJN6jaA3CiQYUu2_5PpuiglZd1MEsPKdtHweL7aok=s800-c-k-c0x00ffffff-no-rj",
 			"よみがな": "よねづけんし",
-			"タグ": [
-				"ボカロP"
-			],
-			"説明": "まだ説明が記入されていません。"
-		},
-		{
-			"データ名": "Yopi",
-			"URL": "https://www.youtube.com/channel/UC7VHtt-FgSIYLjrkzra2Q5A",
-			"アイコンの画像URL": "https://yt3.ggpht.com/ytc/AIdro_kpr0LpCXaS0Q2dU1INuf9qV_70T7ARkxu00V_PUG6NuQ=s800-c-k-c0x00ffffff-no-rj",
-			"よみがな": "よぴ",
 			"タグ": [
 				"ボカロP"
 			],
