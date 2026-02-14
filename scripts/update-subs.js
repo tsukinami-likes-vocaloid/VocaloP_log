@@ -34,7 +34,7 @@ const chunk = (items, size) => {
 
 const fetchStats = async (ids) => {
   const endpoint = new URL("https://www.googleapis.com/youtube/v3/channels");
-  endpoint.searchParams.set("part", "statistics");
+  endpoint.searchParams.set("part", "statistics,snippet");
   endpoint.searchParams.set("id", ids.join(","));
   endpoint.searchParams.set("key", API_KEY);
 
@@ -44,14 +44,23 @@ const fetchStats = async (ids) => {
   }
 
   const payload = await response.json();
-  const statsMap = new Map();
+  const results = new Map();
   (payload.items || []).forEach((item) => {
-    if (item.id && item.statistics && item.statistics.subscriberCount) {
-      statsMap.set(item.id, Number(item.statistics.subscriberCount));
+    const entry = {};
+    if (item.statistics && item.statistics.subscriberCount) {
+      entry.subs = Number(item.statistics.subscriberCount);
+    }
+    if (item.snippet && item.snippet.thumbnails) {
+      const thumbs = item.snippet.thumbnails;
+      // Prefer high > medium > default
+      entry.icon = (thumbs.high || thumbs.medium || thumbs.default || {}).url;
+    }
+    if (item.id && (entry.subs !== undefined || entry.icon)) {
+      results.set(item.id, entry);
     }
   });
 
-  return statsMap;
+  return results;
 };
 
 const loadHistory = async () => {
@@ -141,27 +150,39 @@ const updateSubscribers = async () => {
     .filter(Boolean);
   const uniqueIds = Array.from(new Set(ids));
 
-  const stats = new Map();
+  const fetchedData = new Map();
   const batches = chunk(uniqueIds, 50);
   for (const batch of batches) {
-    const batchStats = await fetchStats(batch);
-    batchStats.forEach((value, key) => stats.set(key, value));
+    const batchResults = await fetchStats(batch);
+    batchResults.forEach((value, key) => fetchedData.set(key, value));
   }
 
   let updated = 0;
+  let iconUpdated = 0;
+
   channels.forEach((channel) => {
     const channelId = parseChannelId(channel.URL);
     if (!channelId) {
       return;
     }
-    const subscriberCount = stats.get(channelId);
-    if (subscriberCount === undefined) {
+    const result = fetchedData.get(channelId);
+    if (!result) {
       return;
     }
 
-    upsertHistory(history.series, channelId, today, subscriberCount);
-    updated += 1;
+    if (result.subs !== undefined) {
+      upsertHistory(history.series, channelId, today, result.subs);
+      updated += 1;
+    }
+
+    if (result.icon) {
+      if (channel["アイコンの画像URL"] !== result.icon) {
+        channel["アイコンの画像URL"] = result.icon;
+        iconUpdated += 1;
+      }
+    }
   });
+
   Object.keys(history.series).forEach((channelId) => {
     history.series[channelId] = compactSeries(
       history.series[channelId],
@@ -169,15 +190,23 @@ const updateSubscribers = async () => {
     );
   });
   history.updatedAt = today;
+  
   const historyOutput = JSON.stringify(history, null, "\t");
   await fs.writeFile(HISTORY_PATH, `${historyOutput}\n`, "utf8");
 
-  return { total: channels.length, updated };
+  // Save updated icons to data.json
+  if (iconUpdated > 0) {
+    const dataOutput = JSON.stringify(data, null, "\t");
+    await fs.writeFile(DATA_PATH, `${dataOutput}\n`, "utf8");
+  }
+
+  return { total: channels.length, updated, iconUpdated };
 };
 
 updateSubscribers()
   .then((result) => {
-    console.log(`Updated ${result.updated} / ${result.total} channels.`);
+    console.log(`Updated stats for ${result.updated} channels.`);
+    console.log(`Updated icons for ${result.iconUpdated} channels.`);
   })
   .catch((error) => {
     console.error(error);

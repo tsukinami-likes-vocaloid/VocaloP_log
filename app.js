@@ -4,8 +4,8 @@ const state = {
   selectedTags: new Set(),
   search: "",
   sort: "subs-desc",
-  historySource: "history.json",
-  historySources: {},
+  history: { series: {} },
+  ranks: {},
   activeItem: null,
 };
 
@@ -32,7 +32,6 @@ const elements = {
   historyChart: document.getElementById("detail-chart"),
   historyEmpty: document.getElementById("detail-history-empty"),
   historyTooltip: document.getElementById("detail-history-tooltip"),
-  historyToggle: document.getElementById("history-source-toggle"),
   chartDetails: document.querySelector(".chart-details"),
   chartSummary: document.querySelector(".chart-summary"),
   chartContent: document.querySelector(".modal-chart"),
@@ -76,11 +75,6 @@ const getChannelId = (url) => {
   return null;
 };
 
-const getHistoryPayloadForSubs = () =>
-  state.historySources["history.json"] ||
-  state.historySources[state.historySource] ||
-  { series: {} };
-
 const getLatestSubsFromSeries = (series) => {
   if (!Array.isArray(series) || series.length === 0) {
     return 0;
@@ -106,8 +100,7 @@ const getLatestSubsForItem = (item) => {
   if (!channelId) {
     return 0;
   }
-  const historyPayload = getHistoryPayloadForSubs();
-  const series = historyPayload.series ? historyPayload.series[channelId] : null;
+  const series = state.history.series ? state.history.series[channelId] : null;
   return getLatestSubsFromSeries(series);
 };
 
@@ -218,7 +211,13 @@ const render = () => {
 
   const fragment = document.createDocumentFragment();
 
-  state.filtered.forEach((item) => {
+  // Determine if we need to show rank
+  // Only show if sort is subs-desc AND no tag filtering, or maybe just purely based on sort?
+  // The user said "When sorted by subscriber count".
+  // Note: state.filtered is already sorted.
+  const isRankMode = state.sort === "subs-desc";
+
+  state.filtered.forEach((item, index) => {
     const node = elements.template.content.cloneNode(true);
     const card = node.querySelector(".card");
     const img = node.querySelector(".avatar");
@@ -232,7 +231,28 @@ const render = () => {
       img.src = fallbackImage;
     });
 
-    name.textContent = item["データ名"] || "名称未設定";
+    const displayName = item["データ名"] || "名称未設定";
+    const channelId = getChannelId(item["URL"]);
+    
+    if (isRankMode) {
+      let diffHtml = "";
+      if (channelId && state.ranks[channelId] !== undefined) {
+        const diff = state.ranks[channelId];
+        if (diff === "new") {
+           diffHtml = `<span class="rank-diff rank-new">NEW</span>`;
+        } else if (diff > 0) {
+          diffHtml = `<span class="rank-diff rank-up" aria-label="ランクアップ">↑</span>`;
+        } else if (diff < 0) {
+          diffHtml = `<span class="rank-diff rank-down" aria-label="ランクダウン">↓</span>`;
+        } else {
+          diffHtml = `<span class="rank-diff rank-stay" aria-label="変動なし">-</span>`;
+        }
+      }
+      name.innerHTML = `<span class="rank-number">${index + 1}</span>${displayName} ${diffHtml}`;
+    } else {
+      name.textContent = displayName;
+    }
+
     const latestSubs = getLatestSubsForItem(item);
     subs.textContent = `登録者数: ${formatSubs.format(latestSubs)}`;
 
@@ -245,11 +265,11 @@ const render = () => {
 
     card.setAttribute("role", "button");
     card.tabIndex = 0;
-    card.addEventListener("click", () => openModal(item));
+    card.addEventListener("click", () => openModal(item, index));
     card.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        openModal(item);
+        openModal(item, index);
       }
     });
 
@@ -258,7 +278,7 @@ const render = () => {
   elements.grid.appendChild(fragment);
 };
 
-const openModal = (item) => {
+const openModal = (item, rankIndex) => {
   state.activeItem = item;
   elements.modalIcon.src = item["アイコンの画像URL"] || fallbackImage;
   elements.modalIcon.alt = `${item["データ名"]} のアイコン`;
@@ -266,7 +286,29 @@ const openModal = (item) => {
     elements.modalIcon.src = fallbackImage;
   });
 
-  elements.modalName.textContent = item["データ名"] || "名称未設定";
+  const displayName = item["データ名"] || "名称未設定";
+  const channelId = getChannelId(item["URL"]);
+
+  if (state.sort === "subs-desc" && typeof rankIndex === "number") {
+    let diffHtml = "";
+    if (channelId && state.ranks[channelId] !== undefined) {
+      const diff = state.ranks[channelId];
+      if (diff === "new") {
+          diffHtml = `<span class="rank-diff rank-new">NEW</span>`;
+      } else if (diff > 0) {
+        // More descriptive text for modal
+        diffHtml = `<span class="rank-diff rank-up">↑ (${diff}UP)</span>`;
+      } else if (diff < 0) {
+        diffHtml = `<span class="rank-diff rank-down">↓ (${Math.abs(diff)}DOWN)</span>`;
+      } else {
+        diffHtml = `<span class="rank-diff rank-stay">-</span>`;
+      }
+    }
+    elements.modalName.innerHTML = `<span class="rank-number">${rankIndex + 1}</span>${displayName} <span style="font-size: 0.8em; font-weight: normal;">${diffHtml}</span>`;
+  } else {
+    elements.modalName.textContent = displayName;
+  }
+
   elements.modalReading.textContent = item["よみがな"]
     ? `よみ: ${item["よみがな"]}`
     : "";
@@ -290,12 +332,8 @@ const openModal = (item) => {
 
 const renderHistoryChart = (item) => {
   const channelId = getChannelId(item["URL"]);
-  const historyPayload =
-    state.historySources[state.historySource] ||
-    state.historySources["history.json"] ||
-    { series: {} };
-  const series = channelId && historyPayload.series
-    ? historyPayload.series[channelId]
+  const series = channelId && state.history.series
+    ? state.history.series[channelId]
     : null;
 
   if (!series || series.length < 2) {
@@ -381,7 +419,7 @@ const renderHistoryChart = (item) => {
     };
   });
 
-  const xLabelIndices = [0, Math.floor((sorted.length - 1) / 2), sorted.length - 1]
+  const xLabelIndices = [0, sorted.length - 1]
     .filter((value, index, array) => array.indexOf(value) === index)
     .sort((a, b) => a - b);
 
@@ -439,6 +477,8 @@ const renderHistoryChart = (item) => {
 
   elements.historyChart.innerHTML = `
     ${gridLines}
+    ${xAxisLabels}
+    ${yAxisLabels}
     <polyline
       fill="none"
       stroke="#1f9c9a"
@@ -446,10 +486,9 @@ const renderHistoryChart = (item) => {
       stroke-linecap="round"
       stroke-linejoin="round"
       points="${points.join(" ")}"
+      style="pointer-events: none;"
     />
     ${dots}
-    ${yAxisLabels}
-    ${xAxisLabels}
   `;
 
   const formatDateForRange = (dateStr) => {
@@ -503,27 +542,6 @@ const closeModal = () => {
   state.activeItem = null;
 };
 
-const updateHistoryToggleUI = () => {
-  const toggleButtons = elements.historyToggle
-    ? Array.from(elements.historyToggle.querySelectorAll("button"))
-    : [];
-  if (!toggleButtons.length) {
-    return;
-  }
-
-  const sources = Object.keys(state.historySources);
-  const hasRaw = sources.includes("history.json");
-  const hasCompacted = sources.includes("history.compacted.json");
-
-  toggleButtons.forEach((button) => {
-    const source = button.dataset.source;
-    const isAvailable =
-      source === "history.json" ? hasRaw : source === "history.compacted.json" ? hasCompacted : false;
-    button.disabled = !isAvailable;
-    button.classList.toggle("active", state.historySource === source);
-  });
-};
-
 const init = async () => {
   try {
     const response = await fetch("./data.json");
@@ -532,38 +550,25 @@ const init = async () => {
     state.filtered = [...state.data];
 
     try {
-      const historyFiles = ["history.json", "history.compacted.json"];
-      const historyResults = await Promise.all(
-        historyFiles.map(async (file) => {
-          try {
-            const historyResponse = await fetch(`./${file}`);
-            if (!historyResponse.ok) {
-              return { file, data: null };
-            }
-            return { file, data: await historyResponse.json() };
-          } catch (error) {
-            return { file, data: null };
-          }
-        })
-      );
-
-      historyResults.forEach(({ file, data }) => {
+      const historyResponse = await fetch("./history.json");
+      if (historyResponse.ok) {
+        const data = await historyResponse.json();
         if (data && data.series) {
-          state.historySources[file] = data;
-        }
-      });
-
-      if (!state.historySources["history.json"]) {
-        const availableSource = Object.keys(state.historySources)[0];
-        if (availableSource) {
-          state.historySource = availableSource;
+          state.history = data;
         }
       }
     } catch (error) {
-      state.historySources = {};
+      console.warn("Failed to load history:", error);
     }
 
-    updateHistoryToggleUI();
+    try {
+      const rankResponse = await fetch("./rank-diff.json");
+      if (rankResponse.ok) {
+        state.ranks = await rankResponse.json();
+      }
+    } catch (error) {
+      console.warn("Failed to load rank diffs:", error);
+    }
 
     renderTags(buildTags(state.data));
 
@@ -584,24 +589,6 @@ const init = async () => {
       }
     });
 
-    if (elements.historyToggle) {
-      elements.historyToggle.addEventListener("click", (event) => {
-        const button = event.target.closest("button");
-        if (!button || button.disabled) {
-          return;
-        }
-        const source = button.dataset.source;
-        if (!source || source === state.historySource) {
-          return;
-        }
-        state.historySource = source;
-        updateHistoryToggleUI();
-        if (state.activeItem && !elements.modal.hidden) {
-          renderHistoryChart(state.activeItem);
-        }
-      });
-    }
-
     if (elements.chartSummary) {
       elements.chartSummary.addEventListener("click", (e) => {
         e.preventDefault();
@@ -616,9 +603,15 @@ const init = async () => {
           content.style.overflow = "hidden";
           
           requestAnimationFrame(() => {
-            content.style.transition = "height 0.3s ease-out, opacity 0.3s ease-out";
+            content.style.transition = "all 0.3s ease-out";
             content.style.height = "0px";
             content.style.opacity = "0";
+            content.style.paddingTop = "0px";
+            content.style.paddingBottom = "0px";
+            content.style.borderTopWidth = "0px";
+            content.style.borderBottomWidth = "0px";
+            content.style.marginTop = "0px";
+            content.style.marginBottom = "0px";
           });
 
           content.addEventListener("transitionend", function handler() {
@@ -627,21 +620,39 @@ const init = async () => {
             content.style.opacity = "";
             content.style.transition = "";
             content.style.overflow = "";
+            content.style.paddingTop = "";
+            content.style.paddingBottom = "";
+            content.style.borderTopWidth = "";
+            content.style.borderBottomWidth = "";
+            content.style.marginTop = "";
+            content.style.marginBottom = "";
             content.removeEventListener("transitionend", handler);
           }, { once: true });
         } else {
           // Opening
           details.setAttribute("open", "");
-          const endHeight = content.scrollHeight;
+          const endHeight = content.offsetHeight;
           
           content.style.height = "0px";
           content.style.opacity = "0";
+          content.style.paddingTop = "0px";
+          content.style.paddingBottom = "0px";
+          content.style.borderTopWidth = "0px";
+          content.style.borderBottomWidth = "0px";
+          content.style.marginTop = "0px";
+          content.style.marginBottom = "0px";
           content.style.overflow = "hidden";
-          content.style.transition = "height 0.3s ease-out, opacity 0.3s ease-out";
+          content.style.transition = "all 0.3s ease-out";
 
           requestAnimationFrame(() => {
             content.style.height = `${endHeight}px`;
             content.style.opacity = "1";
+            content.style.paddingTop = "";
+            content.style.paddingBottom = "";
+            content.style.borderTopWidth = "";
+            content.style.borderBottomWidth = "";
+            content.style.marginTop = "";
+            content.style.marginBottom = "";
           });
 
           content.addEventListener("transitionend", function handler() {
@@ -649,6 +660,12 @@ const init = async () => {
             content.style.opacity = "";
             content.style.transition = "";
             content.style.overflow = "";
+            content.style.paddingTop = "";
+            content.style.paddingBottom = "";
+            content.style.borderTopWidth = "";
+            content.style.borderBottomWidth = "";
+            content.style.marginTop = "";
+            content.style.marginBottom = "";
             content.removeEventListener("transitionend", handler);
           }, { once: true });
         }
