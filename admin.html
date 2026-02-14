@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VocaloP Atlas Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100vh; /* Changed from min-height to height */
+      display: flex;
+      flex-direction: column;
+      background-color: #f7f7f5;
+      overflow: hidden; /* Prevent body scroll */
+    }
+    .admin-header {
+      background: white;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+      flex: 0 0 auto; /* Don't shrink */
+      z-index: 10;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 0;
+      color: #121212;
+      letter-spacing: -0.01em;
+    }
+    .admin-controls {
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      background: #1f9c9a;
+      color: white;
+      border: 1px solid transparent;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover {
+      background: #197a78;
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: white;
+      color: #5f6368;
+      border-color: #e0e0e0;
+    }
+    .btn-secondary:hover {
+      background: #f5f5f5;
+      color: #121212;
+      border-color: #ccc;
+    }
+    .editor-container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      grid-template-rows: minmax(0, 1fr); /* Important for nested scroll */
+      gap: 24px;
+      padding: 24px 32px;
+      flex: 1; /* Take remaining height */
+      overflow: hidden;
+    }
+    .list-panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .search-box {
+      width: 100%;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box:focus {
+      border-color: #1f9c9a;
+    }
+    .channel-list {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      background: white;
+      padding: 8px;
+    }
+    .channel-item {
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 4px;
+      transition: background 0.1s;
+    }
+    .channel-item:hover {
+      background: #f0f0f0;
+    }
+    .channel-item.active {
+      background: rgba(31, 156, 154, 0.1);
+      color: #1f9c9a;
+      font-weight: 600;
+    }
+    .channel-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #f1f1f1;
+      object-fit: cover;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    .form-panel {
+      padding: 32px;
+      background: white;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.08);
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    h2 {
+      margin: 0 0 24px;
+      font-size: 1.25rem;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 16px;
+    }
+    .form-grid {
+      display: grid;
+      gap: 20px;
+      max-width: 680px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #444;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: #fbfcff;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #1f9c9a;
+      background: white;
+    }
+    .form-actions {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #ddd;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-header">
+    <h1>VocaloP Admin</h1>
+    <div class="admin-controls">
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        読み込む
+      </button>
+      <button class="btn btn-secondary" onclick="exportData()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        コピー
+      </button>
+      <button class="btn btn-secondary" onclick="downloadData()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        保存する
+      </button>
+      <button class="btn" onclick="addNew()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新規追加
+      </button>
+    </div>
+  </div>
+
+  <div class="editor-container">
+    <div class="list-panel">
+      <input type="text" class="search-box" placeholder="検索..." oninput="filterList(this.value)">
+      <div id="channelList" class="channel-list"></div>
+      <div style="margin-top: 10px; font-size: 0.8rem; color: #666; text-align: center;">Total: <span id="count">0</span></div>
+    </div>
+    
+    <div class="form-panel" id="formPanel" hidden>
+      <h2 id="formTitle">編集</h2>
+      <form id="editForm" onsubmit="saveChannel(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>データ名 (ボカロP名)</label>
+            <input type="text" name="name" required>
+          </div>
+          <div class="form-group">
+            <label>チャンネルURL</label>
+            <input type="url" name="url" required placeholder="https://www.youtube.com/channel/...">
+          </div>
+          <div class="form-group">
+            <label>よみがな</label>
+            <input type="text" name="reading">
+          </div>
+          <div class="form-group">
+            <label>アイコンURL (空欄で自動取得)</label>
+            <input type="text" name="icon">
+          </div>
+          <div class="form-group">
+            <label>タグ (カンマ区切り)</label>
+            <input type="text" name="tags" placeholder="ボカロP, 作曲家">
+          </div>
+          <div class="form-group">
+            <label>説明</label>
+            <textarea name="desc" rows="6"></textarea>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="deleteChannel()" style="color: #d32f2f; border-color: #d32f2f; margin-right:auto;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            削除
+          </button>
+          <button type="submit" class="btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            リストへ反映
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let channels = [];
+    let editingIndex = -1;
+
+    // Load data
+    fetch('data.json')
+      .then(res => res.json())
+      .then(data => {
+        channels = data.channels || [];
+        renderList();
+      })
+      .catch(err => alert('data.jsonの読み込みに失敗しました: ' + err));
+
+    function renderList(filter = '') {
+      const container = document.getElementById('channelList');
+      container.innerHTML = '';
+      let count = 0;
+      
+      channels.forEach((item, index) => {
+        if (filter && !item['データ名'].toLowerCase().includes(filter.toLowerCase()) && 
+            !item['よみがな'].includes(filter)) return;
+
+        count++;
+        const div = document.createElement('div');
+        div.className = 'channel-item';
+        div.onclick = () => editItem(index);
+        
+        const img = document.createElement('img');
+        img.className = 'channel-icon';
+        img.src = item['アイコンの画像URL'] || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2RkdCIvPjwvc3ZnPg==';
+        img.onerror = () => img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2RkdCIvPjwvc3ZnPg=='; // Fallback
+        
+        const span = document.createElement('span');
+        span.textContent = item['データ名'] || '名称未設定';
+        
+        div.appendChild(img);
+        div.appendChild(span);
+        container.appendChild(div);
+      });
+      
+      const countEl = document.getElementById('count');
+      if (countEl) countEl.textContent = count;
+    }
+
+    function filterList(val) {
+      renderList(val);
+    }
+
+    function addNew() {
+      editingIndex = -1;
+      document.getElementById('formTitle').textContent = '新規追加';
+      document.getElementById('editForm').reset();
+      document.getElementById('formPanel').hidden = false;
+      
+      // Auto-set tag
+      document.querySelector('[name=tags]').value = 'ボカロP';
+    }
+
+    function editItem(index) {
+      editingIndex = index;
+      const item = channels[index];
+      const form = document.getElementById('editForm');
+      
+      document.getElementById('formTitle').textContent = '編集: ' + item['データ名'];
+      form.name.value = item['データ名'] || '';
+      form.url.value = item['URL'] || '';
+      form.reading.value = item['よみがな'] || '';
+      form.icon.value = item['アイコンの画像URL'] || '';
+      form.tags.value = (item['タグ'] || []).join(', ');
+      form.desc.value = item['説明'] || '';
+      
+      document.getElementById('formPanel').hidden = false;
+    }
+
+    function saveChannel(e) {
+      e.preventDefault();
+      const form = e.target;
+      
+      const newData = {
+        "データ名": form.name.value,
+        "URL": form.url.value,
+        "アイコンの画像URL": form.icon.value,
+        "よみがな": form.reading.value,
+        "タグ": form.tags.value.split(',').map(t => t.trim()).filter(Boolean),
+        "説明": form.desc.value
+      };
+
+      if (editingIndex === -1) {
+        channels.push(newData);
+        editingIndex = channels.length - 1;
+      } else {
+        channels[editingIndex] = newData;
+      }
+
+      renderList(document.querySelector('.search-box').value);
+      alert('リストを更新しました。忘れずに「ファイルとして保存」を行ってください。');
+    }
+
+    function deleteChannel() {
+      if (editingIndex === -1) return;
+      if (!confirm('本当に削除しますか？')) return;
+      
+      channels.splice(editingIndex, 1);
+      document.getElementById('formPanel').hidden = true;
+      renderList();
+    }
+
+    function importData(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.channels && Array.isArray(data.channels)) {
+            // Clean up data first
+            const newChannels = data.channels.map(item => ({
+              "データ名": item["データ名"] || "",
+              "URL": item["URL"] || "",
+              "アイコンの画像URL": item["アイコンの画像URL"] || "",
+              "よみがな": item["よみがな"] || "",
+              "タグ": Array.isArray(item["タグ"]) ? item["タグ"] : [],
+              "説明": item["説明"] || ""
+            }));
+
+            if (confirm('現在のリストを全て破棄して、読み込んだデータで【上書き】しますか？\n（キャンセルを押すと【追加】の確認に進みます）')) {
+              channels = newChannels;
+              renderList();
+              document.getElementById('editForm').reset();
+              document.getElementById('formPanel').hidden = true;
+              alert('データを上書きしました。不要なプロパティは削除されました。');
+            } else if (confirm('現在のリストの末尾に【追加】しますか？')) {
+              channels = channels.concat(newChannels);
+              renderList();
+              document.getElementById('editForm').reset();
+              document.getElementById('formPanel').hidden = true;
+              alert('データを追加しました。不要なプロパティは削除されました。');
+            }
+          } else {
+            alert('JSONの形式が正しくありません (channels配列が見つかりません)');
+          }
+        } catch (err) {
+          alert('JSONの読み込みに失敗しました: ' + err);
+        }
+        input.value = ''; // Reset for re-selection
+      };
+      reader.readAsText(file);
+    }
+
+    function exportData() {
+      const json = JSON.stringify({ channels }, null, "\t");
+      navigator.clipboard.writeText(json).then(() => alert('JSONをクリップボードにコピーしました'));
+    }
+
+    function downloadData() {
+      const json = JSON.stringify({ channels }, null, "\t");
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
